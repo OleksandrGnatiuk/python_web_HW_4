@@ -1,27 +1,45 @@
+import datetime
+import json
 import pathlib
 import urllib.parse
 import mimetypes
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-BASE_DIR = pathlib.Path("front-init")
+BASE_DIR = pathlib.Path()
 
 
 class HTTPHandler(BaseHTTPRequestHandler):
+
+    def do_POST(self):
+        # self.send_html(pathlib.Path(f"{BASE_DIR}/index.html"))
+        body = self.rfile.read(int(self.headers["Content-Length"]))
+        body = urllib.parse.unquote_plus(body.decode())
+        record = {}
+        payload = {key: value for key, value in [el.split("=") for el in body.split("&")]}
+        time = datetime.datetime.now()
+        record = {str(time): payload}
+        with open(BASE_DIR.joinpath("storage/data.json"), "a", encoding="utf-8") as fd:
+            json.dump(record, fd, indent=4, ensure_ascii=False)
+
+        self.send_response(302)
+        self.send_header("Location", "/")
+        self.end_headers()
+
     def do_GET(self):
         # print(self.path)
         # print(urllib.parse.urlparse(self.path))
         route = urllib.parse.urlparse(self.path)
         match route.path:
             case "/":
-                self.send_html("front-init/index.html")
+                self.send_html(BASE_DIR.joinpath("index.html"))
             case "/message.html":
-                self.send_html("front-init/message.html")
+                self.send_html(BASE_DIR.joinpath("message.html"))
             case _:
-                file = BASE_DIR / route.path[1:]
+                file = pathlib.Path(BASE_DIR.joinpath(route.path[1:]))
                 if file.exists():
                     self.send_static(file)
                 else:
-                    self.send_html("front-init/error.html", 404)
+                    self.send_html(BASE_DIR.joinpath("error.html"), 404)
 
     def send_html(self, filename, status_code=200):
         self.send_response(status_code)
