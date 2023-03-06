@@ -8,22 +8,30 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 BASE_DIR = pathlib.Path()
 
 
+def save_to_json(self, data):
+    with open(BASE_DIR.joinpath("storage/data.json"), "r") as fd:
+        msgs = json.load(fd)
+
+    record = {str(datetime.datetime.now()): data}
+    msgs.update(record)
+
+    with open(BASE_DIR.joinpath("storage/data.json"), "w", encoding="utf-8") as fd:
+        json.dump(msgs, fd, indent=4, ensure_ascii=False)
+
+
 class HTTPHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         # self.send_html(pathlib.Path(f"{BASE_DIR}/index.html"))
         body = self.rfile.read(int(self.headers["Content-Length"]))
         body = urllib.parse.unquote_plus(body.decode())
-        record = {}
         payload = {key: value for key, value in [el.split("=") for el in body.split("&")]}
-        time = datetime.datetime.now()
-        record = {str(time): payload}
-        with open(BASE_DIR.joinpath("storage/data.json"), "a", encoding="utf-8") as fd:
-            json.dump(record, fd, indent=4, ensure_ascii=False)
+        save_to_json(self, payload)
 
         self.send_response(302)
         self.send_header("Location", "/")
         self.end_headers()
+
 
     def do_GET(self):
         # print(self.path)
