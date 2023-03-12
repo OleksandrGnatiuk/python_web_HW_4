@@ -8,7 +8,7 @@ import logging
 import datetime
 from threading import Thread
 
-BASE_DIR = pathlib.Path()
+BASE_DIR = pathlib.Path('front-init')
 BUFFER_SIZE = 1024
 PORT_HTTP = 3000
 SOCKET_HOST = '127.0.0.1'
@@ -73,11 +73,11 @@ def save_data_from_http_server(data):
     parse_data = urllib.parse.unquote_plus(data.decode())
     try:
         dict_parse = {key: value for key, value in [el.split('=') for el in parse_data.split('&')]}
-        with open('storage/data.json', 'r', encoding='utf-8') as f:
+        with open(FILE_STORAGE, 'r', encoding='utf-8') as f:
             all_records = json.load(f)
             new_record = {str(datetime.datetime.now()): dict_parse}
             all_records.update(new_record)
-            with open('storage/data.json', 'w', encoding='utf-8') as file:
+            with open(FILE_STORAGE, 'w', encoding='utf-8') as file:
                 json.dump(all_records, file, ensure_ascii=False, indent=4)
 
     except ValueError as err:
@@ -115,11 +115,11 @@ def run_http_server():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format="%(threadName)s %(message)s")
 
-    #  If data/data.json is not exists
-    STORAGE_DIR = pathlib.Path().joinpath('storage')
-    FILE_STORAGE = STORAGE_DIR / 'data.json'
+    #  If data/data.json is not exists front-init/storage/data.json
+    STORAGE_DIR = pathlib.Path('front-init').joinpath('storage')
+    FILE_STORAGE = STORAGE_DIR.joinpath('data.json')
     if not FILE_STORAGE.exists():
-        with open('storage/data.json', 'w', encoding='utf-8') as fd:
+        with open(FILE_STORAGE, 'w', encoding='utf-8') as fd:
             json.dump({}, fd, ensure_ascii=False, indent=4)
     # -------------------
 
