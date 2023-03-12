@@ -8,7 +8,7 @@ import logging
 import datetime
 from threading import Thread
 
-BASE_DIR = pathlib.Path('front-init')
+BASE_DIR = pathlib.Path()
 BUFFER_SIZE = 1024
 PORT_HTTP = 3000
 SOCKET_HOST = '127.0.0.1'
@@ -101,7 +101,7 @@ def run_socket_server(host, port):
 
 
 def run_http_server():
-    address = ('127.0.0.1', PORT_HTTP)  # 127.0.0.1. Для docker замінити на '0.0.0.0'
+    address = ('0.0.0.0', PORT_HTTP)  # 127.0.0.1. Для docker замінити на '0.0.0.0'
     httpd = HTTPServer(address, HTTPHandler)
     logging.info('Http server started')
     try:
@@ -115,13 +115,11 @@ def run_http_server():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format="%(threadName)s %(message)s")
 
-    #  If data/data.json is not exists front-init/storage/data.json
-    STORAGE_DIR = pathlib.Path('front-init').joinpath('storage')
+    STORAGE_DIR = pathlib.Path().joinpath('storage')
     FILE_STORAGE = STORAGE_DIR.joinpath('data.json')
     if not FILE_STORAGE.exists():
         with open(FILE_STORAGE, 'w', encoding='utf-8') as fd:
             json.dump({}, fd, ensure_ascii=False, indent=4)
-    # -------------------
 
     th_server = Thread(target=run_http_server)
     th_server.start()
